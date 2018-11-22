@@ -22,46 +22,46 @@ $.extend( $.fn, {
 	validate: function( options ) {
 
 		// If nothing is selected, return nothing; can't chain anyway
-		if ( !this.length ) {
+		if ( !app.length ) {
 			if ( options && options.debug && window.console ) {
 				console.warn( "Nothing selected, can't validate, returning nothing." );
 			}
 			return;
 		}
 
-		// Check if a validator for this form was already created
-		var validator = $.data( this[ 0 ], "validator" );
+		// Check if a validator for app form was already created
+		var validator = $.data( app[ 0 ], "validator" );
 		if ( validator ) {
 			return validator;
 		}
 
 		// Add novalidate tag if HTML5.
-		this.attr( "novalidate", "novalidate" );
+		app.attr( "novalidate", "novalidate" );
 
-		validator = new $.validator( options, this[ 0 ] );
-		$.data( this[ 0 ], "validator", validator );
+		validator = new $.validator( options, app[ 0 ] );
+		$.data( app[ 0 ], "validator", validator );
 
 		if ( validator.settings.onsubmit ) {
 
-			this.on( "click.validate", ":submit", function( event ) {
+			app.on( "click.validate", ":submit", function( event ) {
 
 				// Track the used submit button to properly handle scripted
 				// submits later.
 				validator.submitButton = event.currentTarget;
 
 				// Allow suppressing validation by adding a cancel class to the submit button
-				if ( $( this ).hasClass( "cancel" ) ) {
+				if ( $( app ).hasClass( "cancel" ) ) {
 					validator.cancelSubmit = true;
 				}
 
 				// Allow suppressing validation by adding the html5 formnovalidate attribute to the submit button
-				if ( $( this ).attr( "formnovalidate" ) !== undefined ) {
+				if ( $( app ).attr( "formnovalidate" ) !== undefined ) {
 					validator.cancelSubmit = true;
 				}
 			} );
 
 			// Validate the form on submit
-			this.on( "submit.validate", function( event ) {
+			app.on( "submit.validate", function( event ) {
 				if ( validator.settings.debug ) {
 
 					// Prevent form submit to be able to see console output
@@ -122,14 +122,14 @@ $.extend( $.fn, {
 	valid: function() {
 		var valid, validator, errorList;
 
-		if ( $( this[ 0 ] ).is( "form" ) ) {
-			valid = this.validate().form();
+		if ( $( app[ 0 ] ).is( "form" ) ) {
+			valid = app.validate().form();
 		} else {
 			errorList = [];
 			valid = true;
-			validator = $( this[ 0 ].form ).validate();
-			this.each( function() {
-				valid = validator.element( this ) && valid;
+			validator = $( app[ 0 ].form ).validate();
+			app.each( function() {
+				valid = validator.element( app ) && valid;
 				if ( !valid ) {
 					errorList = errorList.concat( validator.errorList );
 				}
@@ -141,7 +141,7 @@ $.extend( $.fn, {
 
 	// https://jqueryvalidation.org/rules/
 	rules: function( command, argument ) {
-		var element = this[ 0 ],
+		var element = app[ 0 ],
 			settings, staticRules, existingRules, data, param, filtered;
 
 		// If nothing is selected, return empty object; can't chain anyway
@@ -150,8 +150,8 @@ $.extend( $.fn, {
 		}
 
 		if ( !element.form && element.hasAttribute( "contenteditable" ) ) {
-			element.form = this.closest( "form" )[ 0 ];
-			element.name = this.attr( "name" );
+			element.form = app.closest( "form" )[ 0 ];
+			element.name = app.attr( "name" );
 		}
 
 		if ( element.form == null ) {
@@ -236,9 +236,9 @@ $.extend( $.expr.pseudos || $.expr[ ":" ], {		// '|| $.expr[ ":" ]' here enables
 
 // Constructor for validator
 $.validator = function( options, form ) {
-	this.settings = $.extend( true, {}, $.validator.defaults, options );
-	this.currentForm = form;
-	this.init();
+	app.settings = $.extend( true, {}, $.validator.defaults, options );
+	app.currentForm = form;
+	app.init();
 };
 
 // https://jqueryvalidation.org/jQuery.validator.format/
@@ -247,7 +247,7 @@ $.validator.format = function( source, params ) {
 		return function() {
 			var args = $.makeArray( arguments );
 			args.unshift( source );
-			return $.validator.format.apply( this, args );
+			return $.validator.format.apply( app, args );
 		};
 	}
 	if ( params === undefined ) {
@@ -285,19 +285,19 @@ $.extend( $.validator, {
 		ignore: ":hidden",
 		ignoreTitle: false,
 		onfocusin: function( element ) {
-			this.lastActive = element;
+			app.lastActive = element;
 
 			// Hide error label and remove error class on focus if enabled
-			if ( this.settings.focusCleanup ) {
-				if ( this.settings.unhighlight ) {
-					this.settings.unhighlight.call( this, element, this.settings.errorClass, this.settings.validClass );
+			if ( app.settings.focusCleanup ) {
+				if ( app.settings.unhighlight ) {
+					app.settings.unhighlight.call( app, element, app.settings.errorClass, app.settings.validClass );
 				}
-				this.hideThese( this.errorsFor( element ) );
+				app.hideThese( app.errorsFor( element ) );
 			}
 		},
 		onfocusout: function( element ) {
-			if ( !this.checkable( element ) && ( element.name in this.submitted || !this.optional( element ) ) ) {
-				this.element( element );
+			if ( !app.checkable( element ) && ( element.name in app.submitted || !app.optional( element ) ) ) {
+				app.element( element );
 			}
 		},
 		onkeyup: function( element, event ) {
@@ -321,33 +321,33 @@ $.extend( $.validator, {
 				38, 39, 40, 45, 144, 225
 			];
 
-			if ( event.which === 9 && this.elementValue( element ) === "" || $.inArray( event.keyCode, excludedKeys ) !== -1 ) {
+			if ( event.which === 9 && app.elementValue( element ) === "" || $.inArray( event.keyCode, excludedKeys ) !== -1 ) {
 				return;
-			} else if ( element.name in this.submitted || element.name in this.invalid ) {
-				this.element( element );
+			} else if ( element.name in app.submitted || element.name in app.invalid ) {
+				app.element( element );
 			}
 		},
 		onclick: function( element ) {
 
 			// Click on selects, radiobuttons and checkboxes
-			if ( element.name in this.submitted ) {
-				this.element( element );
+			if ( element.name in app.submitted ) {
+				app.element( element );
 
 			// Or option elements, check parent select in that case
-			} else if ( element.parentNode.name in this.submitted ) {
-				this.element( element.parentNode );
+			} else if ( element.parentNode.name in app.submitted ) {
+				app.element( element.parentNode );
 			}
 		},
 		highlight: function( element, errorClass, validClass ) {
 			if ( element.type === "radio" ) {
-				this.findByName( element.name ).addClass( errorClass ).removeClass( validClass );
+				app.findByName( element.name ).addClass( errorClass ).removeClass( validClass );
 			} else {
 				$( element ).addClass( errorClass ).removeClass( validClass );
 			}
 		},
 		unhighlight: function( element, errorClass, validClass ) {
 			if ( element.type === "radio" ) {
-				this.findByName( element.name ).removeClass( errorClass ).addClass( validClass );
+				app.findByName( element.name ).removeClass( errorClass ).addClass( validClass );
 			} else {
 				$( element ).removeClass( errorClass ).addClass( validClass );
 			}
@@ -360,8 +360,8 @@ $.extend( $.validator, {
 	},
 
 	messages: {
-		required: "This field is required.",
-		remote: "Please fix this field.",
+		required: "app field is required.",
+		remote: "Please fix app field.",
 		email: "Please enter a valid email address.",
 		url: "Please enter a valid URL.",
 		date: "Please enter a valid date.",
@@ -383,19 +383,19 @@ $.extend( $.validator, {
 	prototype: {
 
 		init: function() {
-			this.labelContainer = $( this.settings.errorLabelContainer );
-			this.errorContext = this.labelContainer.length && this.labelContainer || $( this.currentForm );
-			this.containers = $( this.settings.errorContainer ).add( this.settings.errorLabelContainer );
-			this.submitted = {};
-			this.valueCache = {};
-			this.pendingRequest = 0;
-			this.pending = {};
-			this.invalid = {};
-			this.reset();
+			app.labelContainer = $( app.settings.errorLabelContainer );
+			app.errorContext = app.labelContainer.length && app.labelContainer || $( app.currentForm );
+			app.containers = $( app.settings.errorContainer ).add( app.settings.errorLabelContainer );
+			app.submitted = {};
+			app.valueCache = {};
+			app.pendingRequest = 0;
+			app.pending = {};
+			app.invalid = {};
+			app.reset();
 
-			var groups = ( this.groups = {} ),
+			var groups = ( app.groups = {} ),
 				rules;
-			$.each( this.settings.groups, function( key, value ) {
+			$.each( app.settings.groups, function( key, value ) {
 				if ( typeof value === "string" ) {
 					value = value.split( /\s/ );
 				}
@@ -403,7 +403,7 @@ $.extend( $.validator, {
 					groups[ name ] = key;
 				} );
 			} );
-			rules = this.settings.rules;
+			rules = app.settings.rules;
 			$.each( rules, function( key, value ) {
 				rules[ key ] = $.validator.normalizeRule( value );
 			} );
@@ -411,20 +411,20 @@ $.extend( $.validator, {
 			function delegate( event ) {
 
 				// Set form expando on contenteditable
-				if ( !this.form && this.hasAttribute( "contenteditable" ) ) {
-					this.form = $( this ).closest( "form" )[ 0 ];
-					this.name = $( this ).attr( "name" );
+				if ( !app.form && app.hasAttribute( "contenteditable" ) ) {
+					app.form = $( app ).closest( "form" )[ 0 ];
+					app.name = $( app ).attr( "name" );
 				}
 
-				var validator = $.data( this.form, "validator" ),
+				var validator = $.data( app.form, "validator" ),
 					eventType = "on" + event.type.replace( /^validate/, "" ),
 					settings = validator.settings;
-				if ( settings[ eventType ] && !$( this ).is( settings.ignore ) ) {
-					settings[ eventType ].call( validator, this, event );
+				if ( settings[ eventType ] && !$( app ).is( settings.ignore ) ) {
+					settings[ eventType ].call( validator, app, event );
 				}
 			}
 
-			$( this.currentForm )
+			$( app.currentForm )
 				.on( "focusin.validate focusout.validate keyup.validate",
 					":text, [type='password'], [type='file'], select, textarea, [type='number'], [type='search'], " +
 					"[type='tel'], [type='url'], [type='email'], [type='datetime'], [type='date'], [type='month'], " +
@@ -435,50 +435,50 @@ $.extend( $.validator, {
 				// "select" is provided as event.target when clicking a option
 				.on( "click.validate", "select, option, [type='radio'], [type='checkbox']", delegate );
 
-			if ( this.settings.invalidHandler ) {
-				$( this.currentForm ).on( "invalid-form.validate", this.settings.invalidHandler );
+			if ( app.settings.invalidHandler ) {
+				$( app.currentForm ).on( "invalid-form.validate", app.settings.invalidHandler );
 			}
 		},
 
 		// https://jqueryvalidation.org/Validator.form/
 		form: function() {
-			this.checkForm();
-			$.extend( this.submitted, this.errorMap );
-			this.invalid = $.extend( {}, this.errorMap );
-			if ( !this.valid() ) {
-				$( this.currentForm ).triggerHandler( "invalid-form", [ this ] );
+			app.checkForm();
+			$.extend( app.submitted, app.errorMap );
+			app.invalid = $.extend( {}, app.errorMap );
+			if ( !app.valid() ) {
+				$( app.currentForm ).triggerHandler( "invalid-form", [ app ] );
 			}
-			this.showErrors();
-			return this.valid();
+			app.showErrors();
+			return app.valid();
 		},
 
 		checkForm: function() {
-			this.prepareForm();
-			for ( var i = 0, elements = ( this.currentElements = this.elements() ); elements[ i ]; i++ ) {
-				this.check( elements[ i ] );
+			app.prepareForm();
+			for ( var i = 0, elements = ( app.currentElements = app.elements() ); elements[ i ]; i++ ) {
+				app.check( elements[ i ] );
 			}
-			return this.valid();
+			return app.valid();
 		},
 
 		// https://jqueryvalidation.org/Validator.element/
 		element: function( element ) {
-			var cleanElement = this.clean( element ),
-				checkElement = this.validationTargetFor( cleanElement ),
-				v = this,
+			var cleanElement = app.clean( element ),
+				checkElement = app.validationTargetFor( cleanElement ),
+				v = app,
 				result = true,
 				rs, group;
 
 			if ( checkElement === undefined ) {
-				delete this.invalid[ cleanElement.name ];
+				delete app.invalid[ cleanElement.name ];
 			} else {
-				this.prepareElement( checkElement );
-				this.currentElements = $( checkElement );
+				app.prepareElement( checkElement );
+				app.currentElements = $( checkElement );
 
-				// If this element is grouped, then validate all group elements already
+				// If app element is grouped, then validate all group elements already
 				// containing a value
-				group = this.groups[ checkElement.name ];
+				group = app.groups[ checkElement.name ];
 				if ( group ) {
-					$.each( this.groups, function( name, testgroup ) {
+					$.each( app.groups, function( name, testgroup ) {
 						if ( testgroup === group && name !== checkElement.name ) {
 							cleanElement = v.validationTargetFor( v.clean( v.findByName( name ) ) );
 							if ( cleanElement && cleanElement.name in v.invalid ) {
@@ -489,20 +489,20 @@ $.extend( $.validator, {
 					} );
 				}
 
-				rs = this.check( checkElement ) !== false;
+				rs = app.check( checkElement ) !== false;
 				result = result && rs;
 				if ( rs ) {
-					this.invalid[ checkElement.name ] = false;
+					app.invalid[ checkElement.name ] = false;
 				} else {
-					this.invalid[ checkElement.name ] = true;
+					app.invalid[ checkElement.name ] = true;
 				}
 
-				if ( !this.numberOfInvalids() ) {
+				if ( !app.numberOfInvalids() ) {
 
 					// Hide error containers on last error
-					this.toHide = this.toHide.add( this.containers );
+					app.toHide = app.toHide.add( app.containers );
 				}
-				this.showErrors();
+				app.showErrors();
 
 				// Add aria-invalid status for screen readers
 				$( element ).attr( "aria-invalid", !rs );
@@ -514,11 +514,11 @@ $.extend( $.validator, {
 		// https://jqueryvalidation.org/Validator.showErrors/
 		showErrors: function( errors ) {
 			if ( errors ) {
-				var validator = this;
+				var validator = app;
 
 				// Add items to error list and map
-				$.extend( this.errorMap, errors );
-				this.errorList = $.map( this.errorMap, function( message, name ) {
+				$.extend( app.errorMap, errors );
+				app.errorList = $.map( app.errorMap, function( message, name ) {
 					return {
 						message: message,
 						element: validator.findByName( name )[ 0 ]
@@ -526,51 +526,51 @@ $.extend( $.validator, {
 				} );
 
 				// Remove items from success list
-				this.successList = $.grep( this.successList, function( element ) {
+				app.successList = $.grep( app.successList, function( element ) {
 					return !( element.name in errors );
 				} );
 			}
-			if ( this.settings.showErrors ) {
-				this.settings.showErrors.call( this, this.errorMap, this.errorList );
+			if ( app.settings.showErrors ) {
+				app.settings.showErrors.call( app, app.errorMap, app.errorList );
 			} else {
-				this.defaultShowErrors();
+				app.defaultShowErrors();
 			}
 		},
 
 		// https://jqueryvalidation.org/Validator.resetForm/
 		resetForm: function() {
 			if ( $.fn.resetForm ) {
-				$( this.currentForm ).resetForm();
+				$( app.currentForm ).resetForm();
 			}
-			this.invalid = {};
-			this.submitted = {};
-			this.prepareForm();
-			this.hideErrors();
-			var elements = this.elements()
+			app.invalid = {};
+			app.submitted = {};
+			app.prepareForm();
+			app.hideErrors();
+			var elements = app.elements()
 				.removeData( "previousValue" )
 				.removeAttr( "aria-invalid" );
 
-			this.resetElements( elements );
+			app.resetElements( elements );
 		},
 
 		resetElements: function( elements ) {
 			var i;
 
-			if ( this.settings.unhighlight ) {
+			if ( app.settings.unhighlight ) {
 				for ( i = 0; elements[ i ]; i++ ) {
-					this.settings.unhighlight.call( this, elements[ i ],
-						this.settings.errorClass, "" );
-					this.findByName( elements[ i ].name ).removeClass( this.settings.validClass );
+					app.settings.unhighlight.call( app, elements[ i ],
+						app.settings.errorClass, "" );
+					app.findByName( elements[ i ].name ).removeClass( app.settings.validClass );
 				}
 			} else {
 				elements
-					.removeClass( this.settings.errorClass )
-					.removeClass( this.settings.validClass );
+					.removeClass( app.settings.errorClass )
+					.removeClass( app.settings.validClass );
 			}
 		},
 
 		numberOfInvalids: function() {
-			return this.objectLength( this.invalid );
+			return app.objectLength( app.invalid );
 		},
 
 		objectLength: function( obj ) {
@@ -579,7 +579,7 @@ $.extend( $.validator, {
 				i;
 			for ( i in obj ) {
 
-				// This check allows counting elements with empty error
+				// app check allows counting elements with empty error
 				// message as invalid elements
 				if ( obj[ i ] !== undefined && obj[ i ] !== null && obj[ i ] !== false ) {
 					count++;
@@ -589,26 +589,26 @@ $.extend( $.validator, {
 		},
 
 		hideErrors: function() {
-			this.hideThese( this.toHide );
+			app.hideThese( app.toHide );
 		},
 
 		hideThese: function( errors ) {
-			errors.not( this.containers ).text( "" );
-			this.addWrapper( errors ).hide();
+			errors.not( app.containers ).text( "" );
+			app.addWrapper( errors ).hide();
 		},
 
 		valid: function() {
-			return this.size() === 0;
+			return app.size() === 0;
 		},
 
 		size: function() {
-			return this.errorList.length;
+			return app.errorList.length;
 		},
 
 		focusInvalid: function() {
-			if ( this.settings.focusInvalid ) {
+			if ( app.settings.focusInvalid ) {
 				try {
-					$( this.findLastActive() || this.errorList.length && this.errorList[ 0 ].element || [] )
+					$( app.findLastActive() || app.errorList.length && app.errorList[ 0 ].element || [] )
 					.filter( ":visible" )
 					.focus()
 
@@ -622,35 +622,35 @@ $.extend( $.validator, {
 		},
 
 		findLastActive: function() {
-			var lastActive = this.lastActive;
-			return lastActive && $.grep( this.errorList, function( n ) {
+			var lastActive = app.lastActive;
+			return lastActive && $.grep( app.errorList, function( n ) {
 				return n.element.name === lastActive.name;
 			} ).length === 1 && lastActive;
 		},
 
 		elements: function() {
-			var validator = this,
+			var validator = app,
 				rulesCache = {};
 
 			// Select all valid inputs inside the form (no submit or reset buttons)
-			return $( this.currentForm )
+			return $( app.currentForm )
 			.find( "input, select, textarea, [contenteditable]" )
 			.not( ":submit, :reset, :image, :disabled" )
-			.not( this.settings.ignore )
+			.not( app.settings.ignore )
 			.filter( function() {
-				var name = this.name || $( this ).attr( "name" ); // For contenteditable
+				var name = app.name || $( app ).attr( "name" ); // For contenteditable
 				if ( !name && validator.settings.debug && window.console ) {
-					console.error( "%o has no name assigned", this );
+					console.error( "%o has no name assigned", app );
 				}
 
 				// Set form expando on contenteditable
-				if ( this.hasAttribute( "contenteditable" ) ) {
-					this.form = $( this ).closest( "form" )[ 0 ];
-					this.name = name;
+				if ( app.hasAttribute( "contenteditable" ) ) {
+					app.form = $( app ).closest( "form" )[ 0 ];
+					app.name = name;
 				}
 
 				// Select only the first element for each name, and only those with rules specified
-				if ( name in rulesCache || !validator.objectLength( $( this ).rules() ) ) {
+				if ( name in rulesCache || !validator.objectLength( $( app ).rules() ) ) {
 					return false;
 				}
 
@@ -664,31 +664,31 @@ $.extend( $.validator, {
 		},
 
 		errors: function() {
-			var errorClass = this.settings.errorClass.split( " " ).join( "." );
-			return $( this.settings.errorElement + "." + errorClass, this.errorContext );
+			var errorClass = app.settings.errorClass.split( " " ).join( "." );
+			return $( app.settings.errorElement + "." + errorClass, app.errorContext );
 		},
 
 		resetInternals: function() {
-			this.successList = [];
-			this.errorList = [];
-			this.errorMap = {};
-			this.toShow = $( [] );
-			this.toHide = $( [] );
+			app.successList = [];
+			app.errorList = [];
+			app.errorMap = {};
+			app.toShow = $( [] );
+			app.toHide = $( [] );
 		},
 
 		reset: function() {
-			this.resetInternals();
-			this.currentElements = $( [] );
+			app.resetInternals();
+			app.currentElements = $( [] );
 		},
 
 		prepareForm: function() {
-			this.reset();
-			this.toHide = this.errors().add( this.containers );
+			app.reset();
+			app.toHide = app.errors().add( app.containers );
 		},
 
 		prepareElement: function( element ) {
-			this.reset();
-			this.toHide = this.errorsFor( element );
+			app.reset();
+			app.toHide = app.errorsFor( element );
 		},
 
 		elementValue: function( element ) {
@@ -697,7 +697,7 @@ $.extend( $.validator, {
 				val, idx;
 
 			if ( type === "radio" || type === "checkbox" ) {
-				return this.findByName( element.name ).filter( ":checked" ).val();
+				return app.findByName( element.name ).filter( ":checked" ).val();
 			} else if ( type === "number" && typeof element.validity !== "undefined" ) {
 				return element.validity.badInput ? "NaN" : $element.val();
 			}
@@ -739,27 +739,27 @@ $.extend( $.validator, {
 		},
 
 		check: function( element ) {
-			element = this.validationTargetFor( this.clean( element ) );
+			element = app.validationTargetFor( app.clean( element ) );
 
 			var rules = $( element ).rules(),
 				rulesCount = $.map( rules, function( n, i ) {
 					return i;
 				} ).length,
 				dependencyMismatch = false,
-				val = this.elementValue( element ),
+				val = app.elementValue( element ),
 				result, method, rule, normalizer;
 
-			// Prioritize the local normalizer defined for this element over the global one
+			// Prioritize the local normalizer defined for app element over the global one
 			// if the former exists, otherwise user the global one in case it exists.
 			if ( typeof rules.normalizer === "function" ) {
 				normalizer = rules.normalizer;
-			} else if (	typeof this.settings.normalizer === "function" ) {
-				normalizer = this.settings.normalizer;
+			} else if (	typeof app.settings.normalizer === "function" ) {
+				normalizer = app.settings.normalizer;
 			}
 
 			// If normalizer is defined, then call it to retreive the changed value instead
 			// of using the real one.
-			// Note that `this` in the normalizer is `element`.
+			// Note that `app` in the normalizer is `element`.
 			if ( normalizer ) {
 				val = normalizer.call( element, val );
 
@@ -774,7 +774,7 @@ $.extend( $.validator, {
 			for ( method in rules ) {
 				rule = { method: method, parameters: rules[ method ] };
 				try {
-					result = $.validator.methods[ method ].call( this, val, element, rule.parameters );
+					result = $.validator.methods[ method ].call( app, val, element, rule.parameters );
 
 					// If a method indicates that the field is optional and therefore valid,
 					// don't mark it as valid when there are no other rules
@@ -785,16 +785,16 @@ $.extend( $.validator, {
 					dependencyMismatch = false;
 
 					if ( result === "pending" ) {
-						this.toHide = this.toHide.not( this.errorsFor( element ) );
+						app.toHide = app.toHide.not( app.errorsFor( element ) );
 						return;
 					}
 
 					if ( !result ) {
-						this.formatAndAdd( element, rule );
+						app.formatAndAdd( element, rule );
 						return false;
 					}
 				} catch ( e ) {
-					if ( this.settings.debug && window.console ) {
+					if ( app.settings.debug && window.console ) {
 						console.log( "Exception occurred when checking element " + element.id + ", check the '" + rule.method + "' method.", e );
 					}
 					if ( e instanceof TypeError ) {
@@ -807,8 +807,8 @@ $.extend( $.validator, {
 			if ( dependencyMismatch ) {
 				return;
 			}
-			if ( this.objectLength( rules ) ) {
-				this.successList.push( element );
+			if ( app.objectLength( rules ) ) {
+				app.successList.push( element );
 			}
 			return true;
 		},
@@ -823,7 +823,7 @@ $.extend( $.validator, {
 
 		// Return the custom message for the given element name and validation method
 		customMessage: function( name, method ) {
-			var m = this.settings.messages[ name ];
+			var m = app.settings.messages[ name ];
 			return m && ( m.constructor === String ? m : m[ method ] );
 		},
 
@@ -851,18 +851,18 @@ $.extend( $.validator, {
 				rule = { method: rule };
 			}
 
-			var message = this.findDefined(
-					this.customMessage( element.name, rule.method ),
-					this.customDataMessage( element, rule.method ),
+			var message = app.findDefined(
+					app.customMessage( element.name, rule.method ),
+					app.customDataMessage( element, rule.method ),
 
 					// 'title' is never undefined, so handle empty string as undefined
-					!this.settings.ignoreTitle && element.title || undefined,
+					!app.settings.ignoreTitle && element.title || undefined,
 					$.validator.messages[ rule.method ],
 					"<strong>Warning: No message defined for " + element.name + "</strong>"
 				),
 				theregex = /\$?\{(\d+)\}/g;
 			if ( typeof message === "function" ) {
-				message = message.call( this, rule.parameters, element );
+				message = message.call( app, rule.parameters, element );
 			} else if ( theregex.test( message ) ) {
 				message = $.validator.format( message.replace( theregex, "{$1}" ), rule.parameters );
 			}
@@ -871,95 +871,95 @@ $.extend( $.validator, {
 		},
 
 		formatAndAdd: function( element, rule ) {
-			var message = this.defaultMessage( element, rule );
+			var message = app.defaultMessage( element, rule );
 
-			this.errorList.push( {
+			app.errorList.push( {
 				message: message,
 				element: element,
 				method: rule.method
 			} );
 
-			this.errorMap[ element.name ] = message;
-			this.submitted[ element.name ] = message;
+			app.errorMap[ element.name ] = message;
+			app.submitted[ element.name ] = message;
 		},
 
 		addWrapper: function( toToggle ) {
-			if ( this.settings.wrapper ) {
-				toToggle = toToggle.add( toToggle.parent( this.settings.wrapper ) );
+			if ( app.settings.wrapper ) {
+				toToggle = toToggle.add( toToggle.parent( app.settings.wrapper ) );
 			}
 			return toToggle;
 		},
 
 		defaultShowErrors: function() {
 			var i, elements, error;
-			for ( i = 0; this.errorList[ i ]; i++ ) {
-				error = this.errorList[ i ];
-				if ( this.settings.highlight ) {
-					this.settings.highlight.call( this, error.element, this.settings.errorClass, this.settings.validClass );
+			for ( i = 0; app.errorList[ i ]; i++ ) {
+				error = app.errorList[ i ];
+				if ( app.settings.highlight ) {
+					app.settings.highlight.call( app, error.element, app.settings.errorClass, app.settings.validClass );
 				}
-				this.showLabel( error.element, error.message );
+				app.showLabel( error.element, error.message );
 			}
-			if ( this.errorList.length ) {
-				this.toShow = this.toShow.add( this.containers );
+			if ( app.errorList.length ) {
+				app.toShow = app.toShow.add( app.containers );
 			}
-			if ( this.settings.success ) {
-				for ( i = 0; this.successList[ i ]; i++ ) {
-					this.showLabel( this.successList[ i ] );
-				}
-			}
-			if ( this.settings.unhighlight ) {
-				for ( i = 0, elements = this.validElements(); elements[ i ]; i++ ) {
-					this.settings.unhighlight.call( this, elements[ i ], this.settings.errorClass, this.settings.validClass );
+			if ( app.settings.success ) {
+				for ( i = 0; app.successList[ i ]; i++ ) {
+					app.showLabel( app.successList[ i ] );
 				}
 			}
-			this.toHide = this.toHide.not( this.toShow );
-			this.hideErrors();
-			this.addWrapper( this.toShow ).show();
+			if ( app.settings.unhighlight ) {
+				for ( i = 0, elements = app.validElements(); elements[ i ]; i++ ) {
+					app.settings.unhighlight.call( app, elements[ i ], app.settings.errorClass, app.settings.validClass );
+				}
+			}
+			app.toHide = app.toHide.not( app.toShow );
+			app.hideErrors();
+			app.addWrapper( app.toShow ).show();
 		},
 
 		validElements: function() {
-			return this.currentElements.not( this.invalidElements() );
+			return app.currentElements.not( app.invalidElements() );
 		},
 
 		invalidElements: function() {
-			return $( this.errorList ).map( function() {
-				return this.element;
+			return $( app.errorList ).map( function() {
+				return app.element;
 			} );
 		},
 
 		showLabel: function( element, message ) {
 			var place, group, errorID, v,
-				error = this.errorsFor( element ),
-				elementID = this.idOrName( element ),
+				error = app.errorsFor( element ),
+				elementID = app.idOrName( element ),
 				describedBy = $( element ).attr( "aria-describedby" );
 
 			if ( error.length ) {
 
 				// Refresh error/success class
-				error.removeClass( this.settings.validClass ).addClass( this.settings.errorClass );
+				error.removeClass( app.settings.validClass ).addClass( app.settings.errorClass );
 
 				// Replace message on existing label
 				error.html( message );
 			} else {
 
 				// Create error element
-				error = $( "<" + this.settings.errorElement + ">" )
+				error = $( "<" + app.settings.errorElement + ">" )
 					.attr( "id", elementID + "-error" )
-					.addClass( this.settings.errorClass )
+					.addClass( app.settings.errorClass )
 					.html( message || "" );
 
 				// Maintain reference to the element to be placed into the DOM
 				place = error;
-				if ( this.settings.wrapper ) {
+				if ( app.settings.wrapper ) {
 
 					// Make sure the element is visible, even in IE
 					// actually showing the wrapped element is handled elsewhere
-					place = error.hide().show().wrap( "<" + this.settings.wrapper + "/>" ).parent();
+					place = error.hide().show().wrap( "<" + app.settings.wrapper + "/>" ).parent();
 				}
-				if ( this.labelContainer.length ) {
-					this.labelContainer.append( place );
-				} else if ( this.settings.errorPlacement ) {
-					this.settings.errorPlacement.call( this, place, $( element ) );
+				if ( app.labelContainer.length ) {
+					app.labelContainer.append( place );
+				} else if ( app.settings.errorPlacement ) {
+					app.settings.errorPlacement.call( app, place, $( element ) );
 				} else {
 					place.insertAfter( element );
 				}
@@ -972,23 +972,23 @@ $.extend( $.validator, {
 
 					// If the element is not a child of an associated label, then it's necessary
 					// to explicitly apply aria-describedby
-				} else if ( error.parents( "label[for='" + this.escapeCssMeta( elementID ) + "']" ).length === 0 ) {
+				} else if ( error.parents( "label[for='" + app.escapeCssMeta( elementID ) + "']" ).length === 0 ) {
 					errorID = error.attr( "id" );
 
 					// Respect existing non-error aria-describedby
 					if ( !describedBy ) {
 						describedBy = errorID;
-					} else if ( !describedBy.match( new RegExp( "\\b" + this.escapeCssMeta( errorID ) + "\\b" ) ) ) {
+					} else if ( !describedBy.match( new RegExp( "\\b" + app.escapeCssMeta( errorID ) + "\\b" ) ) ) {
 
 						// Add to end of list if not already present
 						describedBy += " " + errorID;
 					}
 					$( element ).attr( "aria-describedby", describedBy );
 
-					// If this element is grouped, then assign to all elements in the same group
-					group = this.groups[ element.name ];
+					// If app element is grouped, then assign to all elements in the same group
+					group = app.groups[ element.name ];
 					if ( group ) {
-						v = this;
+						v = app;
 						$.each( v.groups, function( name, testgroup ) {
 							if ( testgroup === group ) {
 								$( "[name='" + v.escapeCssMeta( name ) + "']", v.currentForm )
@@ -998,29 +998,29 @@ $.extend( $.validator, {
 					}
 				}
 			}
-			if ( !message && this.settings.success ) {
+			if ( !message && app.settings.success ) {
 				error.text( "" );
-				if ( typeof this.settings.success === "string" ) {
-					error.addClass( this.settings.success );
+				if ( typeof app.settings.success === "string" ) {
+					error.addClass( app.settings.success );
 				} else {
-					this.settings.success( error, element );
+					app.settings.success( error, element );
 				}
 			}
-			this.toShow = this.toShow.add( error );
+			app.toShow = app.toShow.add( error );
 		},
 
 		errorsFor: function( element ) {
-			var name = this.escapeCssMeta( this.idOrName( element ) ),
+			var name = app.escapeCssMeta( app.idOrName( element ) ),
 				describer = $( element ).attr( "aria-describedby" ),
 				selector = "label[for='" + name + "'], label[for='" + name + "'] *";
 
 			// 'aria-describedby' should directly reference the error element
 			if ( describer ) {
-				selector = selector + ", #" + this.escapeCssMeta( describer )
+				selector = selector + ", #" + app.escapeCssMeta( describer )
 					.replace( /\s+/g, ", #" );
 			}
 
-			return this
+			return app
 				.errors()
 				.filter( selector );
 		},
@@ -1033,18 +1033,18 @@ $.extend( $.validator, {
 		},
 
 		idOrName: function( element ) {
-			return this.groups[ element.name ] || ( this.checkable( element ) ? element.name : element.id || element.name );
+			return app.groups[ element.name ] || ( app.checkable( element ) ? element.name : element.id || element.name );
 		},
 
 		validationTargetFor: function( element ) {
 
 			// If radio/checkbox, validate first element in group instead
-			if ( this.checkable( element ) ) {
-				element = this.findByName( element.name );
+			if ( app.checkable( element ) ) {
+				element = app.findByName( element.name );
 			}
 
 			// Always apply ignore filter
-			return $( element ).not( this.settings.ignore )[ 0 ];
+			return $( element ).not( app.settings.ignore )[ 0 ];
 		},
 
 		checkable: function( element ) {
@@ -1052,7 +1052,7 @@ $.extend( $.validator, {
 		},
 
 		findByName: function( name ) {
-			return $( this.currentForm ).find( "[name='" + this.escapeCssMeta( name ) + "']" );
+			return $( app.currentForm ).find( "[name='" + app.escapeCssMeta( name ) + "']" );
 		},
 
 		getLength: function( value, element ) {
@@ -1060,15 +1060,15 @@ $.extend( $.validator, {
 			case "select":
 				return $( "option:selected", element ).length;
 			case "input":
-				if ( this.checkable( element ) ) {
-					return this.findByName( element.name ).filter( ":checked" ).length;
+				if ( app.checkable( element ) ) {
+					return app.findByName( element.name ).filter( ":checked" ).length;
 				}
 			}
 			return value.length;
 		},
 
 		depend: function( param, element ) {
-			return this.dependTypes[ typeof param ] ? this.dependTypes[ typeof param ]( param, element ) : true;
+			return app.dependTypes[ typeof param ] ? app.dependTypes[ typeof param ]( param, element ) : true;
 		},
 
 		dependTypes: {
@@ -1084,42 +1084,42 @@ $.extend( $.validator, {
 		},
 
 		optional: function( element ) {
-			var val = this.elementValue( element );
-			return !$.validator.methods.required.call( this, val, element ) && "dependency-mismatch";
+			var val = app.elementValue( element );
+			return !$.validator.methods.required.call( app, val, element ) && "dependency-mismatch";
 		},
 
 		startRequest: function( element ) {
-			if ( !this.pending[ element.name ] ) {
-				this.pendingRequest++;
-				$( element ).addClass( this.settings.pendingClass );
-				this.pending[ element.name ] = true;
+			if ( !app.pending[ element.name ] ) {
+				app.pendingRequest++;
+				$( element ).addClass( app.settings.pendingClass );
+				app.pending[ element.name ] = true;
 			}
 		},
 
 		stopRequest: function( element, valid ) {
-			this.pendingRequest--;
+			app.pendingRequest--;
 
 			// Sometimes synchronization fails, make sure pendingRequest is never < 0
-			if ( this.pendingRequest < 0 ) {
-				this.pendingRequest = 0;
+			if ( app.pendingRequest < 0 ) {
+				app.pendingRequest = 0;
 			}
-			delete this.pending[ element.name ];
-			$( element ).removeClass( this.settings.pendingClass );
-			if ( valid && this.pendingRequest === 0 && this.formSubmitted && this.form() ) {
-				$( this.currentForm ).submit();
+			delete app.pending[ element.name ];
+			$( element ).removeClass( app.settings.pendingClass );
+			if ( valid && app.pendingRequest === 0 && app.formSubmitted && app.form() ) {
+				$( app.currentForm ).submit();
 
 				// Remove the hidden input that was used as a replacement for the
 				// missing submit button. The hidden input is added by `handle()`
 				// to ensure that the value of the used submit button is passed on
-				// for scripted submits triggered by this method
-				if ( this.submitButton ) {
-					$( "input:hidden[name='" + this.submitButton.name + "']", this.currentForm ).remove();
+				// for scripted submits triggered by app method
+				if ( app.submitButton ) {
+					$( "input:hidden[name='" + app.submitButton.name + "']", app.currentForm ).remove();
 				}
 
-				this.formSubmitted = false;
-			} else if ( !valid && this.pendingRequest === 0 && this.formSubmitted ) {
-				$( this.currentForm ).triggerHandler( "invalid-form", [ this ] );
-				this.formSubmitted = false;
+				app.formSubmitted = false;
+			} else if ( !valid && app.pendingRequest === 0 && app.formSubmitted ) {
+				$( app.currentForm ).triggerHandler( "invalid-form", [ app ] );
+				app.formSubmitted = false;
 			}
 		},
 
@@ -1129,15 +1129,15 @@ $.extend( $.validator, {
 			return $.data( element, "previousValue" ) || $.data( element, "previousValue", {
 				old: null,
 				valid: true,
-				message: this.defaultMessage( element, { method: method } )
+				message: app.defaultMessage( element, { method: method } )
 			} );
 		},
 
 		// Cleans up all forms and elements, removes validator-specific events
 		destroy: function() {
-			this.resetForm();
+			app.resetForm();
 
-			$( this.currentForm )
+			$( app.currentForm )
 				.off( ".validate" )
 				.removeData( "validator" )
 				.find( ".validate-equalTo-blur" )
@@ -1160,9 +1160,9 @@ $.extend( $.validator, {
 
 	addClassRules: function( className, rules ) {
 		if ( className.constructor === String ) {
-			this.classRuleSettings[ className ] = rules;
+			app.classRuleSettings[ className ] = rules;
 		} else {
-			$.extend( this.classRuleSettings, className );
+			$.extend( app.classRuleSettings, className );
 		}
 	},
 
@@ -1172,8 +1172,8 @@ $.extend( $.validator, {
 
 		if ( classes ) {
 			$.each( classes.split( " " ), function() {
-				if ( this in $.validator.classRuleSettings ) {
-					$.extend( rules, $.validator.classRuleSettings[ this ] );
+				if ( app in $.validator.classRuleSettings ) {
+					$.extend( rules, $.validator.classRuleSettings[ app ] );
 				}
 			} );
 		}
@@ -1227,7 +1227,7 @@ $.extend( $.validator, {
 				value = $element.attr( method );
 			}
 
-			this.normalizeAttributeRule( rules, type, method, value );
+			app.normalizeAttributeRule( rules, type, method, value );
 		}
 
 		// 'maxlength' may be returned as -1, 2147483647 ( IE ) and 524288 ( safari ) for text inputs
@@ -1246,7 +1246,7 @@ $.extend( $.validator, {
 
 		for ( method in $.validator.methods ) {
 			value = $element.data( "rule" + method.charAt( 0 ).toUpperCase() + method.substring( 1 ).toLowerCase() );
-			this.normalizeAttributeRule( rules, type, method, value );
+			app.normalizeAttributeRule( rules, type, method, value );
 		}
 		return rules;
 	},
@@ -1297,18 +1297,18 @@ $.extend( $.validator, {
 
 		// Clean number parameters
 		$.each( [ "minlength", "maxlength" ], function() {
-			if ( rules[ this ] ) {
-				rules[ this ] = Number( rules[ this ] );
+			if ( rules[ app ] ) {
+				rules[ app ] = Number( rules[ app ] );
 			}
 		} );
 		$.each( [ "rangelength", "range" ], function() {
 			var parts;
-			if ( rules[ this ] ) {
-				if ( $.isArray( rules[ this ] ) ) {
-					rules[ this ] = [ Number( rules[ this ][ 0 ] ), Number( rules[ this ][ 1 ] ) ];
-				} else if ( typeof rules[ this ] === "string" ) {
-					parts = rules[ this ].replace( /[\[\]]/g, "" ).split( /[\s,]+/ );
-					rules[ this ] = [ Number( parts[ 0 ] ), Number( parts[ 1 ] ) ];
+			if ( rules[ app ] ) {
+				if ( $.isArray( rules[ app ] ) ) {
+					rules[ app ] = [ Number( rules[ app ][ 0 ] ), Number( rules[ app ][ 1 ] ) ];
+				} else if ( typeof rules[ app ] === "string" ) {
+					parts = rules[ app ].replace( /[\[\]]/g, "" ).split( /[\s,]+/ );
+					rules[ app ] = [ Number( parts[ 0 ] ), Number( parts[ 1 ] ) ];
 				}
 			}
 		} );
@@ -1336,7 +1336,7 @@ $.extend( $.validator, {
 		if ( typeof data === "string" ) {
 			var transformed = {};
 			$.each( data.split( /\s/ ), function() {
-				transformed[ this ] = true;
+				transformed[ app ] = true;
 			} );
 			data = transformed;
 		}
@@ -1359,17 +1359,17 @@ $.extend( $.validator, {
 		required: function( value, element, param ) {
 
 			// Check if dependency is met
-			if ( !this.depend( param, element ) ) {
+			if ( !app.depend( param, element ) ) {
 				return "dependency-mismatch";
 			}
 			if ( element.nodeName.toLowerCase() === "select" ) {
 
-				// Could be an array for select-multiple or a string, both are fine this way
+				// Could be an array for select-multiple or a string, both are fine app way
 				var val = $( element ).val();
 				return val && val.length > 0;
 			}
-			if ( this.checkable( element ) ) {
-				return this.getLength( value, element ) > 0;
+			if ( app.checkable( element ) ) {
+				return app.getLength( value, element ) > 0;
 			}
 			return value.length > 0;
 		},
@@ -1379,9 +1379,9 @@ $.extend( $.validator, {
 
 			// From https://html.spec.whatwg.org/multipage/forms.html#valid-e-mail-address
 			// Retrieved 2014-01-14
-			// If you have a problem with this implementation, report a bug against the above spec
+			// If you have a problem with app implementation, report a bug against the above spec
 			// Or use custom methods to implement your own email validation
-			return this.optional( element ) || /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test( value );
+			return app.optional( element ) || /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test( value );
 		},
 
 		// https://jqueryvalidation.org/url-method/
@@ -1391,60 +1391,60 @@ $.extend( $.validator, {
 			// https://gist.github.com/dperini/729294
 			// see also https://mathiasbynens.be/demo/url-regex
 			// modified to allow protocol-relative URLs
-			return this.optional( element ) || /^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})).?)(?::\d{2,5})?(?:[/?#]\S*)?$/i.test( value );
+			return app.optional( element ) || /^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})).?)(?::\d{2,5})?(?:[/?#]\S*)?$/i.test( value );
 		},
 
 		// https://jqueryvalidation.org/date-method/
 		date: function( value, element ) {
-			return this.optional( element ) || !/Invalid|NaN/.test( new Date( value ).toString() );
+			return app.optional( element ) || !/Invalid|NaN/.test( new Date( value ).toString() );
 		},
 
 		// https://jqueryvalidation.org/dateISO-method/
 		dateISO: function( value, element ) {
-			return this.optional( element ) || /^\d{4}[\/\-](0?[1-9]|1[012])[\/\-](0?[1-9]|[12][0-9]|3[01])$/.test( value );
+			return app.optional( element ) || /^\d{4}[\/\-](0?[1-9]|1[012])[\/\-](0?[1-9]|[12][0-9]|3[01])$/.test( value );
 		},
 
 		// https://jqueryvalidation.org/number-method/
 		number: function( value, element ) {
-			return this.optional( element ) || /^(?:-?\d+|-?\d{1,3}(?:,\d{3})+)?(?:\.\d+)?$/.test( value );
+			return app.optional( element ) || /^(?:-?\d+|-?\d{1,3}(?:,\d{3})+)?(?:\.\d+)?$/.test( value );
 		},
 
 		// https://jqueryvalidation.org/digits-method/
 		digits: function( value, element ) {
-			return this.optional( element ) || /^\d+$/.test( value );
+			return app.optional( element ) || /^\d+$/.test( value );
 		},
 
 		// https://jqueryvalidation.org/minlength-method/
 		minlength: function( value, element, param ) {
-			var length = $.isArray( value ) ? value.length : this.getLength( value, element );
-			return this.optional( element ) || length >= param;
+			var length = $.isArray( value ) ? value.length : app.getLength( value, element );
+			return app.optional( element ) || length >= param;
 		},
 
 		// https://jqueryvalidation.org/maxlength-method/
 		maxlength: function( value, element, param ) {
-			var length = $.isArray( value ) ? value.length : this.getLength( value, element );
-			return this.optional( element ) || length <= param;
+			var length = $.isArray( value ) ? value.length : app.getLength( value, element );
+			return app.optional( element ) || length <= param;
 		},
 
 		// https://jqueryvalidation.org/rangelength-method/
 		rangelength: function( value, element, param ) {
-			var length = $.isArray( value ) ? value.length : this.getLength( value, element );
-			return this.optional( element ) || ( length >= param[ 0 ] && length <= param[ 1 ] );
+			var length = $.isArray( value ) ? value.length : app.getLength( value, element );
+			return app.optional( element ) || ( length >= param[ 0 ] && length <= param[ 1 ] );
 		},
 
 		// https://jqueryvalidation.org/min-method/
 		min: function( value, element, param ) {
-			return this.optional( element ) || value >= param;
+			return app.optional( element ) || value >= param;
 		},
 
 		// https://jqueryvalidation.org/max-method/
 		max: function( value, element, param ) {
-			return this.optional( element ) || value <= param;
+			return app.optional( element ) || value <= param;
 		},
 
 		// https://jqueryvalidation.org/range-method/
 		range: function( value, element, param ) {
-			return this.optional( element ) || ( value >= param[ 0 ] && value <= param[ 1 ] );
+			return app.optional( element ) || ( value >= param[ 0 ] && value <= param[ 1 ] );
 		},
 
 		// https://jqueryvalidation.org/step-method/
@@ -1482,7 +1482,7 @@ $.extend( $.validator, {
 				valid = false;
 			}
 
-			return this.optional( element ) || valid;
+			return app.optional( element ) || valid;
 		},
 
 		// https://jqueryvalidation.org/equalTo-method/
@@ -1490,7 +1490,7 @@ $.extend( $.validator, {
 
 			// Bind to the blur event of the target in order to revalidate whenever the target field is updated
 			var target = $( param );
-			if ( this.settings.onfocusout && target.not( ".validate-equalTo-blur" ).length ) {
+			if ( app.settings.onfocusout && target.not( ".validate-equalTo-blur" ).length ) {
 				target.addClass( "validate-equalTo-blur" ).on( "blur.validate-equalTo", function() {
 					$( element ).valid();
 				} );
@@ -1500,20 +1500,20 @@ $.extend( $.validator, {
 
 		// https://jqueryvalidation.org/remote-method/
 		remote: function( value, element, param, method ) {
-			if ( this.optional( element ) ) {
+			if ( app.optional( element ) ) {
 				return "dependency-mismatch";
 			}
 
 			method = typeof method === "string" && method || "remote";
 
-			var previous = this.previousValue( element, method ),
+			var previous = app.previousValue( element, method ),
 				validator, data, optionDataString;
 
-			if ( !this.settings.messages[ element.name ] ) {
-				this.settings.messages[ element.name ] = {};
+			if ( !app.settings.messages[ element.name ] ) {
+				app.settings.messages[ element.name ] = {};
 			}
-			previous.originalMessage = previous.originalMessage || this.settings.messages[ element.name ][ method ];
-			this.settings.messages[ element.name ][ method ] = previous.message;
+			previous.originalMessage = previous.originalMessage || app.settings.messages[ element.name ][ method ];
+			app.settings.messages[ element.name ][ method ] = previous.message;
 
 			param = typeof param === "string" && { url: param } || param;
 			optionDataString = $.param( $.extend( { data: value }, param.data ) );
@@ -1522,8 +1522,8 @@ $.extend( $.validator, {
 			}
 
 			previous.old = optionDataString;
-			validator = this;
-			this.startRequest( element );
+			validator = app;
+			app.startRequest( element );
 			data = {};
 			data[ element.name ] = value;
 			$.ajax( $.extend( true, {
@@ -1591,10 +1591,10 @@ if ( $.ajaxPrefilter ) {
 			if ( pendingRequests[ port ] ) {
 				pendingRequests[ port ].abort();
 			}
-			pendingRequests[ port ] = ajax.apply( this, arguments );
+			pendingRequests[ port ] = ajax.apply( app, arguments );
 			return pendingRequests[ port ];
 		}
-		return ajax.apply( this, arguments );
+		return ajax.apply( app, arguments );
 	};
 }
 return $;

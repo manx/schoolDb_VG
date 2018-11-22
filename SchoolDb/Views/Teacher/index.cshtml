@@ -1,0 +1,34 @@
+﻿@model SchoolDb.ViewModels.Teacher.TeacherIndexViewModel
+
+@{
+    ViewData["Title"] = @Model.Title;
+}
+
+<div>
+    <h2>@Model.Title</h2>
+    <hr />
+    <dl class="dl-horizontal"></dl>
+</div>
+<div id="vue-app">
+    <table class="table table-striped table-bordered table-hover table-condensed table-responsive">
+        <thead>
+        <tr>
+            <th scope="col">Id</th>
+            <th scope="col">Namn</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var teacher in Model.Teachers)
+        {
+            <tr v-on:click="openTeacherDetails(@teacher.Id)">
+                <td>@teacher.Id</td>
+                <td>@($"{teacher.FirstName} {teacher.LastName}")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+<script src="~/js/TeacherIndex.js"></script>
+

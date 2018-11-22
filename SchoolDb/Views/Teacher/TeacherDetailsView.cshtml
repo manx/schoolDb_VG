@@ -1,0 +1,61 @@
+﻿@model SchoolDb.ViewModels.Teacher.TeacherDetailsViewModel
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h2>Lärarinfo</h2>
+
+<hr />
+<div id="vue-app">
+    <div class="row">
+        <div class="col-md-4">
+            <form>
+                <div class="form-group">
+                    <label class="control-label">Förnamn</label>
+                    <input v-model="updatedTeacher.firstName" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label class="control-label">Efternamn</label>
+                    <input v-model="updatedTeacher.lastName" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <input type="button" value="Spara" class="btn btn-default" v-bind:disabled="!teacherInfoHasChanged" />
+                    <input type="button" value="Återställ" class="btn" v-bind:disabled="!teacherInfoHasChanged" v-on:click="resetValues()" />
+                </div>
+            </form>
+        </div>
+    </div>
+    <br />
+    <h3>Lärare på följande kurser</h3>
+    <table class="table table-striped table-bordered table-hover table-condensed table-responsive">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Kursnamn</th>
+                <th scope="col">Ta bort</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var course in Model.Teacher.Courses)
+            {
+                <tr>
+                    <td>@course.Id</td>
+                    <td>@course.Name</td>
+                    <td><button class="btn btn-danger"></button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div>
+        <a asp-action="Index">Alla lärare</a>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+    <script>
+        var viewModel = @Json.Serialize(Model);
+    </script>
+    <script src="~/js/teacherDetails.js"></script>
+}
